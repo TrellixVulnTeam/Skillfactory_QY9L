@@ -2,8 +2,8 @@ import telebot
 import requests
 import json
 
-TOKEN = "1453157377:AAE2uFDEg5cwm1fkOI_aDSrHj8v4dr-ydpw"
-
+# TOKEN = "1453157377:AAE2uFDEg5cwm1fkOI_aDSrHj8v4dr-ydpw"
+TOKEN = ""
 
 def bank_api_poll(base, quote):
     request = requests.get(f"https://api.exchangeratesapi.io/latest?base={base}&symbols={quote}")
