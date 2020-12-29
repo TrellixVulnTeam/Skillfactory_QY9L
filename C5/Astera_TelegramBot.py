@@ -1,20 +1,19 @@
 import telebot
-import requests
-import json
+from extensions import *
 
-TOKEN = "1453157377:AAE2uFDEg5cwm1fkOI_aDSrHj8v4dr-ydpw"
-#TOKEN = ""
+file = open('token.cfg', 'r')
+token = file.read()
+file.close()
 
 
-def bank_api_poll(base, quote):
 
-    request = requests.get(f"https://api.exchangeratesapi.io/latest?base={base}&symbols={quote}")
-    print("sys--> ", request.content)
-    rate = float(json.loads(request.content)['rates'][quote])
-    print("sys--> ", rate)
 
-    return rate
-
+def isfloat(str):
+    try:
+        float(str)
+        return True
+    except ValueError:
+        return False
 
 def instruction():
 
@@ -24,27 +23,56 @@ def instruction():
             f"и количество исходной валюты, через пробел.\n" \
             f"===\nНапример: EUR USD 150\n" \
             f"===\nСписок доступных валют: /values\n"
-
     return header
 
 
-def values():  # Формирование списка валют
+def values():
     cur_values = "Список доступных кодов валют:\n"+20*"="+"\n"
     for cur in cur_data:
         cur_values = cur_values + f"{cur}: {cur_data[cur]}. "
     return cur_values
 
 
-def g_bank_api_poll(base, quote):  # Опрос API и получение данных валютной пары
-    request = requests.get(f"https://api.exchangeratesapi.io/latest?base={base}&symbols={quote}")
-    print("sys--> ", request.content)
-    rate = float(json.loads(request.content)['rates'][quote])
-    print("sys--> ",rate)
+def convert(message):  # Обрабатываем введенное сообщение
+    try:
+        tg_string = message.text.split(' ')
+        base = tg_string[0].upper()
+        quote = tg_string[1].upper()
+        amount = tg_string[2]
+        if "," in amount:
+            amount = amount.replace(",",".")
+    except IndexError:
+        error = 1
+        text = "Недостаточно параметров"
+        raise APIException(error, text)
+    else:
+        if len(tg_string)>3:
+            error = 2
+            text = "Слишком много параметров"
+            raise APIException(error, text)
+        elif base.upper() not in cur_data.keys():
+            error = 3
+            text = "Неверен код исходной валюты"
+            raise APIException(error, text)
+        elif quote.upper() not in cur_data.keys():
+            error = 4
+            text = "Неверен код результирующей валюты"
+            raise APIException(error, text)
+        elif not isfloat(amount):
+            error = 5
+            text = "Неверно количество исходной валюты"
+            raise APIException(error, text)
+        elif base == quote:
+            error = 6
+            text = "Исходная и результирующая валюты идентичны"
+            raise APIException(error, text)
+        else:
+            text = BankAPI.get_price(base, quote, amount)
+            error = 0
+    finally:
+        return error, text
 
-    return rate
 
-
-bot = telebot.TeleBot(TOKEN)
 cur_data = {"EUR": "Евро", "USD": "Доллар США", "JPY": "Японская йена", "BGN": "Болгарский лев",
             "CZK": "Чешская крона", "DKK": "Датская крона", "GBP": "Британский фунт", "HUF": "Венгерский форинт",
             "PLN": "Польский злотый", "RON": "Румынский лей", "SEK": "Шведская крона", "CHF": "Швейцарский франк",
@@ -56,6 +84,10 @@ cur_data = {"EUR": "Евро", "USD": "Доллар США", "JPY": "Японс�
             "NZD": "Новозеландский доллар", "PHP": "Филиппинское песо", "SGD": "Сингапурский доллар",
             "THB": "Тайский бат", "ZAR": "Южноафриканский рэнд"}
 
+bot = telebot.TeleBot(token)
+print("Bot started")
+
+
 
 @bot.message_handler(commands=['start', 'help'])  # Обработчик /start /help
 def handle_start_help(message):
@@ -63,6 +95,11 @@ def handle_start_help(message):
     rep = instruction()
     bot.send_message(chat_id=message.chat.id, text=rep)
 
+@bot.message_handler(commands=['start', 'help'])  # Обработчик /start /help
+def handle_start_help(message):
+    print(f"{message.from_user.username}: {message.text}")
+    rep = instruction()
+    bot.send_message(chat_id=message.chat.id, text=rep)
 
 @bot.message_handler(commands=['values'])  # Обработчик /values
 def handle_start_help(message):
@@ -70,56 +107,15 @@ def handle_start_help(message):
     rep = values()
     bot.send_message(chat_id=message.chat.id, text=rep)
 
-
-@bot.message_handler(commands=['convert'])  # Обработчик для группы /convert
-def handle_start_help(message):
-    print(f"{message.from_user.username}: {message.text}")
-    try:
-        command, base, quote, amount = message.text.split(' ', 3)
-    except AttributeError:
-        answer = "err:Broken Attributes"
-        print(answer)
-    except ValueError:
-        answer = "err:Value Error"
-        print(answer)
-    else:
-        base, quote = base.upper(), quote.upper()
-        print(command[1::], base.upper(), quote.upper(), amount)
-        rate = bank_api_poll(base.upper(), quote.upper())
-        answer = f"{amount} {base} = {rate*float(amount)} {quote}"
-    bot.reply_to(message, text=answer)
-
-
 @bot.message_handler()  # Общий обработчик
 def repeat(message: telebot.types.Message):
-    print(f"{message.from_user.username}: {message.text}")
-    base = 'EUR'
-    quote = 'USD'
-    amount = '1'
-    try:
-        base, quote, amount = message.text.split(' ', 3)
-    except ValueError:
-        answer = "sys--> err:Value Error"
-        print(answer)
-        bot.reply_to(message, text="Введенная информация не распознана. \n"
-                                   "Помощь в работе с ботом: /start, /help.\n"
-                                   "Список валют: /values")
-    else:
-        if base.upper() in cur_data.keys() and quote.upper() in cur_data.keys() and amount.isnumeric():
-            try:
-                rate = bank_api_poll(base.upper(), quote.upper())
-                answer = f"{amount} {base} = {rate * float(amount)} {quote}"
-            except ValueError:
-                answer = "sys--> err:Value Error"
-                print(answer)
-            except UnboundLocalError:
-                answer = "sys--> err:UnboundLocalError"
-                print(answer)
-            else:
-                print(base, quote, amount)
-                bot.reply_to(message, text=answer)
-        else:
-            bot.reply_to(message, text="Один из кодов валют неверен, либо неправильно введена сумма валюты")
 
-print("Bot started")
+    print(f"{message.from_user.username}: {message.text}")
+    error, result = convert(message)
+    print(f"err={error}, {result}")
+    if error == 0:
+        bot.reply_to(message, text=result)
+    else:
+        bot.reply_to(message, text=f"Ошибка. {result}")
+
 bot.polling(none_stop=True)

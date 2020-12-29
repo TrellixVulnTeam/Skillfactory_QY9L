@@ -1,8 +1,20 @@
-import requests
-import json
+message = 'rub'
+try:
+    tg_string = message.split(' ')
+    base = tg_string[0]
+    quote = tg_string[1]
+    amount = tg_string[2]
 
-r = requests.get('https://baconipsum.com/api/?type=meat-and-filler')
+except TypeError:
+    print("TypeError")
 
-r = json.loads(r.content)
 
-print(r[0])
+except IndexError:
+    print("IndexError")
+except ValueError:
+    print("ValueError")
+except BaseException:
+    print("Не отловлена ошибка")
+
+else:
+    print(base,quote,amount)
