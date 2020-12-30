@@ -1,6 +1,7 @@
 import telebot
 from extensions import *
 
+
 file = open('token.cfg', 'r')
 token = file.read()
 file.close()
@@ -43,28 +44,28 @@ def convert(message):  # Обрабатываем введенное сообщ�
             amount = amount.replace(",",".")
     except IndexError:
         error = 1
-        text = "Недостаточно параметров"
+        text = "Недостаточно параметров.\nПример команды: EUR RUB 100\nСписок валют - /values"
         raise APIException(error, text)
     else:
         if len(tg_string)>3:
             error = 2
-            text = "Слишком много параметров"
+            text = "Слишком много параметров.\nПример команды: EUR RUB 100\nСписок валют - /values"
             raise APIException(error, text)
         elif base.upper() not in cur_data.keys():
             error = 3
-            text = "Неверен код исходной валюты"
+            text = "Неверен код исходной валюты.\nСписок валют - /values"
             raise APIException(error, text)
         elif quote.upper() not in cur_data.keys():
             error = 4
-            text = "Неверен код результирующей валюты"
+            text = "Неверен код результирующей валюты.\nСписок валют - /values"
             raise APIException(error, text)
         elif not isfloat(amount):
             error = 5
-            text = "Неверно количество исходной валюты"
+            text = "Неверно количество исходной валюты.\nПример команды: EUR RUB 100"
             raise APIException(error, text)
         elif base == quote:
             error = 6
-            text = "Исходная и результирующая валюты идентичны"
+            text = "Исходная и результирующая валюты идентичны.\nПример команды: EUR RUB 100"
             raise APIException(error, text)
         else:
             text = BankAPI.get_price(base, quote, amount)
@@ -116,6 +117,6 @@ def repeat(message: telebot.types.Message):
     if error == 0:
         bot.reply_to(message, text=result)
     else:
-        bot.reply_to(message, text=f"Ошибка. {result}")
+        bot.reply_to(message, text=f"{result}")
 
 bot.polling(none_stop=True)

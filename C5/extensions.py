@@ -1,6 +1,6 @@
 import requests
 import json
-
+import math
 class BankAPI:
     @staticmethod
     def get_price(base, quote, amount):
@@ -9,7 +9,7 @@ class BankAPI:
         print("sys--> ", request.content)
         rate = float(json.loads(request.content)["rates"][quote.upper()])
         print("sys--> ", rate)
-        return f"{amount} {base.upper()} = {rate * float(amount)} {quote.upper()}"
+        return f"{math.floor(float(amount)*100)/100} {base.upper()} = {math.floor(rate * float(amount)*100)/100} {quote.upper()}"
 
 class APIException(BaseException):
     def __init__(self,error,text):
