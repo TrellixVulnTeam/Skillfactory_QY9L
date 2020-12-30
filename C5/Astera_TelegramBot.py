@@ -7,14 +7,13 @@ token = file.read()
 file.close()
 
 
-
-
-def isfloat(str):
+def isfloat(amount_str):
     try:
-        float(str)
+        float(amount_str)
         return True
     except ValueError:
         return False
+
 
 def instruction():
 
@@ -30,7 +29,7 @@ def instruction():
 def values():
     cur_values = "Список доступных кодов валют:\n"+20*"="+"\n"
     for cur in cur_data:
-        cur_values = cur_values + f"{cur}: {cur_data[cur]}. "
+        cur_values = cur_values + f"{cur}: {cur_data[cur]}\n"
     return cur_values
 
 
@@ -41,13 +40,13 @@ def convert(message):  # Обрабатываем введенное сообщ�
         quote = tg_string[1].upper()
         amount = tg_string[2]
         if "," in amount:
-            amount = amount.replace(",",".")
+            amount = amount.replace(",", ".")
     except IndexError:
         error = 1
         text = "Недостаточно параметров.\nПример команды: EUR RUB 100\nСписок валют - /values"
         raise APIException(error, text)
     else:
-        if len(tg_string)>3:
+        if len(tg_string) > 3:
             error = 2
             text = "Слишком много параметров.\nПример команды: EUR RUB 100\nСписок валют - /values"
             raise APIException(error, text)
@@ -89,6 +88,12 @@ bot = telebot.TeleBot(token)
 print("Bot started")
 
 
+@bot.message_handler(commands=['start', 'help'])  # Обработчик /start /help
+def handle_start_help(message):
+    print(f"{message.from_user.username}: {message.text}")
+    rep = instruction()
+    bot.send_message(chat_id=message.chat.id, text=rep)
+
 
 @bot.message_handler(commands=['start', 'help'])  # Обработчик /start /help
 def handle_start_help(message):
@@ -96,17 +101,13 @@ def handle_start_help(message):
     rep = instruction()
     bot.send_message(chat_id=message.chat.id, text=rep)
 
-@bot.message_handler(commands=['start', 'help'])  # Обработчик /start /help
-def handle_start_help(message):
-    print(f"{message.from_user.username}: {message.text}")
-    rep = instruction()
-    bot.send_message(chat_id=message.chat.id, text=rep)
 
 @bot.message_handler(commands=['values'])  # Обработчик /values
 def handle_start_help(message):
     print(f"{message.from_user.username}: {message.text}")
     rep = values()
     bot.send_message(chat_id=message.chat.id, text=rep)
+
 
 @bot.message_handler()  # Общий обработчик
 def repeat(message: telebot.types.Message):
@@ -118,5 +119,6 @@ def repeat(message: telebot.types.Message):
         bot.reply_to(message, text=result)
     else:
         bot.reply_to(message, text=f"{result}")
+
 
 bot.polling(none_stop=True)
