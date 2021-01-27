@@ -58,7 +58,7 @@ class Post(models.Model):
 
     def __str__(self):
         # return f"[ID={str(self.pk)}, TYPE={self.type}] - header={self.header} (rate:{self.rating})"
-        return self.title
+        return self.header
 
     def like(self):
         self.rating += 1
