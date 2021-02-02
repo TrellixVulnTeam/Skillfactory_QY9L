@@ -2,7 +2,7 @@
 from django.views.generic import ListView, DetailView
 #from datetime import datetime
 
-from .models import Author, Post, Comment
+from .models import Post
 class PostsList(ListView):
     model = Post
     template_name = 'posts.html'

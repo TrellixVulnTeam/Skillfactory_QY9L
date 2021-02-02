@@ -5,12 +5,10 @@
 {% block title %}
 Post
 {% endblock title %}
-
-<!-- В контенте на странице мы выводим все новости -->
+<!-- В контенте на странице мы выводим одну новость но подробно -->
 {% block content %}
 <h1>{{ post.header }}</h1>
 <h6>{{post.create_date|date:'d F Y G:i:s'}}</h6>
 <div><p>{{post.text}}</p></div>
 <div><p><a href = ".">Вернуться</a></p></div>
-
 {% endblock content %}
