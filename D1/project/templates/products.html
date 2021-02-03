@@ -1,6 +1,6 @@
 <!--  наследуемся от шаблона default.html, который мы создавали ещё во времена flatpages -->
 {% extends 'flatpages/default.html' %}
-
+{% load custom_filters %}
 <!-- Название у нас будет proudcts -->
 {% block title %}
 Products
@@ -23,7 +23,7 @@ Products
             </tr>
             {% for product in products %}
             <tr>
-                <td>{{product.name}}</td>
+                <td>{{product.name|multiply:'a'}}</td>
                 <td>{{product.description|truncatechars:20}}</td>
                 <td>{{product.category.name}}</td>
                 <td>{{product.price}}</td>
